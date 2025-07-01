@@ -5,8 +5,8 @@ const app = express();
 
 app.use(bodyParser.json());
 
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET; // Load from .env for security
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN; // Load from .env
+const PAYSTACK_SECRET = process.env.sk_live_dddd6532acd10e230d6b01b4b03b516ac37e8b9c;
+const TELEGRAM_BOT_TOKEN = process.env.7290889674:AAEzbaUsV4EXSjwE0Nur5HGInwhmaCqtBcc;
 
 // ✅ Create Paystack link
 app.post("/create-paystack-link", async (req, res) => {
@@ -17,25 +17,34 @@ app.post("/create-paystack-link", async (req, res) => {
   }
 
   const payload = {
-    email: `telegram_id@megabetnation.com`,
+    email: `${telegram_id}@megabetnation.com`,
     amount: amount * 100,
     currency: "NGN",
     callback_url: "https://megabet-paystack-backend.onrender.com/paystack/callback",
-    metadata:  telegram_id ;
+    metadata: {
+      telegram_id: telegram_id
+    }
+  };
 
-  try 
-    const response = await axios.post("https://api.paystack.co/transaction/initialize", payload, 
-      headers:  Authorization: `Bearer{PAYSTACK_SECRET}` }
-    });
+  try {
+    const response = await axios.post(
+      "https://api.paystack.co/transaction/initialize",
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET}`
+        }
+      }
+    );
 
     return res.json({ success: true, url: response.data.data.authorization_url });
   } catch (err) {
-console.error("Paystack Error:", err.response?.data || err.message);
+    console.error("Paystack Error:", err.response?.data || err.message);
     return res.status(500).json({ success: false, message: "Failed to create payment link" });
   }
 });
 
-// ✅ Paystack webhook
+// ✅ Webhook for successful payment
 app.post("/paystack/callback", async (req, res) => {
   const event = req.body;
 
@@ -45,24 +54,26 @@ app.post("/paystack/callback", async (req, res) => {
 
     if (telegramId) {
       try {
-        await axios.post(`https://api.bots.business/v1/bot/TELEGRAM_BOT_TOKEN/runCommand`, 
+        await axios.post(`https://api.bots.business/v1/bot/${TELEGRAM_BOT_TOKEN}/runCommand`, {
           user_id: telegramId,
           command: "/credit_wallet",
-          amount
-        );
-       catch (err) 
+          amount: amount
+        });
+      } catch (err) {
         console.error("Telegram Callback Error:", err.message);
-      
+      }
+    }
+  }
 
   res.sendStatus(200);
-);
+});
 
-// Test route
-app.get("/ping", (req, res) => 
+// ✅ Test route
+app.get("/ping", (req, res) => {
   res.send("✅ MegaBet Nation backend is live");
-);
+});
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => 
-  console.log(`🌐 Server running on port{PORT}`);
+app.listen(PORT, () => {
+  console.log(`🌐 Server running on port ${PORT}`);
 });
